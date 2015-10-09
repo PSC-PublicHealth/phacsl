@@ -4,9 +4,9 @@
 # Copyright   2015, Pittsburgh Supercomputing Center (PSC).  All Rights Reserved. #
 # =============================================================================== #
 #                                                                                 #
-# Permission to use, copy, and modify this software and its documentation without # 
+# Permission to use, copy, and modify this software and its documentation without #
 # fee for personal use within your organization is hereby granted, provided that  #
-# the above copyright notice is preserved in all copies and that the copyright    # 
+# the above copyright notice is preserved in all copies and that the copyright    #
 # and this permission notice appear in supporting documentation.  All other       #
 # restrictions and obligations are defined in the GNU Affero General Public       #
 # License v3 (AGPL-3.0) located at http://www.gnu.org/licenses/agpl-3.0.html  A   #
@@ -15,38 +15,45 @@
 #                                                                                 #
 ###################################################################################
 
-_hermes_svn_id_="$Id: csv_tools.py 2262 2015-02-09 14:38:25Z stbrown $"
+import re
+import types
+import chardet
+import codecs
+from ..misc import util
 
-import sys,os,os.path,math,re,types,chardet,codecs
-import ipath
-from util import openFileOrHandle, logError, raiseRuntimeError, getPreferredOutputEncoding
+verbose = 0
+debug = 0
 
-verbose= 0
-debug= 0
+logError = util.logError
+raiseRuntimeError = util.raiseRuntimeError
+getPreferredOutputEncoding = util.getPreferredOutputEncoding
+openByNameOrFile = util.openByNameOrFile
+
 
 class CSVDict(dict):
-    def getFloat(self,keyOrKeyList):
-        if isinstance(keyOrKeyList,types.ListType):
+    def getFloat(self, keyOrKeyList):
+        if isinstance(keyOrKeyList, types.ListType):
             for k in keyOrKeyList:
-                if k in self: return float(self[k])
+                if k in self:
+                    return float(self[k])
             raise KeyError(keyOrKeyList[-1])
         else:
             return float(self[keyOrKeyList])
 
-    def safeGetFloat(self,keyOrKeyList,default,ignore=None):
+    def safeGetFloat(self, keyOrKeyList, default, ignore=None):
         if ignore is None:
             try:
                 return self.getFloat(keyOrKeyList)
             except (KeyError, ValueError):
                 return default
         else:
-            if isinstance(keyOrKeyList,types.ListType):
+            if isinstance(keyOrKeyList, types.ListType):
                 for k in keyOrKeyList:
-                    if k in self and self[k]!=ignore and self[k]!='':
+                    if k in self and self[k] != ignore and self[k] != '':
                         return float(self[k])
                 return default
             else:
-                if k in self and self[k]!=ignore:
+                if k in self and self[k] != ignore:
                     return float(self[k])
                 return default
 
@@ -64,11 +71,12 @@ def makeSplitRegex(delim):
     """
     if delim is None:
         return re.compile(r'\s*(\S+)(?:\s*|$)')
-    elif delim=='\t':
+    elif delim == '\t':
         # why is \t delimiter treated separately????
-        rstr= r'''[ \n\r\f\v]*([^"'%s]*|"[^"]*"|'[^']*')[ \n\r\f\v]*(?:%s|$)'''%(delim,delim)
-        if debug: print "regex for <%s>: <%s>"%(delim,rstr)
-        return re.compile(rstr)        
+        rstr = r'''[ \n\r\f\v]*([^"'%s]*|"[^"]*"|'[^']*')[ \n\r\f\v]*(?:%s|$)''' % (delim, delim)
+        if debug:
+            print "regex for <%s>: <%s>" % (delim, rstr)
+        return re.compile(rstr)
     else:
         # See bug #381 in redmine for more information
         # Note that both double and single quoted string patterns employ a
@@ -81,18 +89,21 @@ def makeSplitRegex(delim):
         # build the regex string
         rstr = r'''\s*(%s)\s*(?:%s|$)''' % (group1, delim)
         # debug logging
-        if debug: print "regex for <%s>: <%s>"%(delim,rstr)
+        if debug:
+            print "regex for <%s>: <%s>" % (delim, rstr)
         return re.compile(rstr)
+
 
 def parseCSVHeader(ifile):
     """
     returns just the list of keys from the header of the csv file
 
-    ifile can be any of: an open file handle, a file name, or a tuple of the form (keys, recs)
+    ifile can be any of: an open file, a file name, or a tuple of the form (keys, recs)
     equivalent to what parseCSV would return (which is returned blindly)
     """
     if isinstance(ifile, types.TupleType):
-        if verbose: print "parsing header of preprocessed tuple instead of CSV"
+        if verbose:
+            print "parsing header of preprocessed tuple instead of CSV"
         return ifile[0]
 
     if isinstance(ifile, types.StringTypes):
@@ -100,59 +111,66 @@ def parseCSVHeader(ifile):
     else:
         name = ifile.name
 
-    if verbose: print "parsing header of %s"%name
-    lineList= []
-    possibleDelimiters= [";",",","\t",None] # empty string means whitespace-delimited
-    with openFileOrHandle(ifile) as f:
-        lines= f.readlines(20) #don't bother reading the entire file, just enough to get hints
-    delimFound= 0
-    delimForThisFile= None
+    if verbose:
+        print "parsing header of %s" % name
+    possibleDelimiters = [";", ",", "\t", None]  # empty string means whitespace-delimited
+    with openByNameOrFile(ifile) as f:
+        lines = f.readlines(20)  # don't bother reading the entire file, just enough to get hints
+    delimFound = 0
+    delimForThisFile = None
     for delim in possibleDelimiters:
-        if delim is not None and lines[0].find(delim)<0:
-            if debug: print "Delim is not <%s> (no occurrences in labels)"%delim
+        if delim is not None and lines[0].find(delim) < 0:
+            if debug:
+                print "Delim is not <%s> (no occurrences in labels)" % delim
             continue
-        tryRegex= makeSplitRegex(delim)
-        wordCount= len(tryRegex.findall(lines[0]))
-        if wordCount<3: 
-            if debug: print "Delim is not <%s> (no labels found)\n"%delim
+        tryRegex = makeSplitRegex(delim)
+        wordCount = len(tryRegex.findall(lines[0]))
+        if wordCount < 3:
+            if debug:
+                print "Delim is not <%s> (no labels found)\n" % delim
             continue
         for line in lines[1:]:
-            nwords= len(tryRegex.findall(line))
-            if nwords>0 and nwords != wordCount:
-                print "%d vs. %d: <%s>"%(nwords,wordCount,line)
-                if debug: print "Delim is not <%s>\n"%delim
+            nwords = len(tryRegex.findall(line))
+            if nwords > 0 and nwords != wordCount:
+                if debug:
+                    print "%d vs. %d: <%s>" % (nwords, wordCount, line)
+                    print "Delim is not <%s>\n" % delim
                 break
         else:
-            delimFound= 1
-            delimForThisFile= delim
-            regexForThisFile= tryRegex
+            delimFound = 1
+            delimForThisFile = delim
+            regexForThisFile = tryRegex
             break
     if not delimFound:
         raise Exception("Cannot find the right delimiter for this CSV input!")
-        #sys.exit("Cannot find the right delimiter for this CSV input!")
-    if debug: print"delimForThisFile= <%s>"%delimForThisFile
-    keys= regexForThisFile.findall(lines[0])[:-1] # skip empty regex match at end
-    keys= [ x.strip() for x in keys ]
-    stringsAreQuoted= 1
+        # sys.exit("Cannot find the right delimiter for this CSV input!")
+    if debug:
+        print"delimForThisFile= <%s>" % delimForThisFile
+    keys = regexForThisFile.findall(lines[0])[:-1]  # skip empty regex match at end
+    keys = [x.strip() for x in keys]
+    stringsAreQuoted = 1
     for key in keys:
-        if len(key)>0 \
+        if len(key) > 0 \
                 and (not key.startswith('"') or not key.endswith('"')) \
                 and (not key.startswith("'") or not key.endswith("'")):
-            stringsAreQuoted= 0
-    if debug: print "stringsAreQuoted= %d"%stringsAreQuoted
+            stringsAreQuoted = 0
+    if debug:
+        print "stringsAreQuoted= %d" % stringsAreQuoted
     if stringsAreQuoted:
-        keys = [ x[1:-1] for x in keys ]
+        keys = [x[1:-1] for x in keys]
     return keys
 
-def parseCSV( ifile ):
+
+def parseCSV(ifile):
     """
     returns a tuple containing a list of keys and a list of dicts"
 
-    ifile can be any of: an open file handle, a file name, or a tuple of the form (keys, recs)
+    ifile can be any of: an open file, a file name, or a tuple of the form (keys, recs)
     equivalent to what parseCSV would return (which is returned blindly).
     """
     if isinstance(ifile, types.TupleType):
-        if verbose: print "parsing preprocessed tuple instead of CSV"
+        if verbose:
+            print "parsing preprocessed tuple instead of CSV"
         return ifile
 
     if isinstance(ifile, types.StringTypes):
@@ -160,153 +178,172 @@ def parseCSV( ifile ):
     else:
         name = ifile.name
 
-    if verbose: print "parsing %s"%name
-    lineList= []
-    possibleDelimiters= [";",",","\t",None] # empty string means whitespace-delimited
-    with openFileOrHandle(ifile) as f:
-        lines= f.readlines()
+    if verbose:
+        print "parsing %s" % name
+    lineList = []
+    possibleDelimiters = [";", ",", "\t", None]  # empty string means whitespace-delimited
+    with openByNameOrFile(ifile) as f:
+        lines = f.readlines()  # don't bother reading the entire file, just enough to get hints
     encodingInfo = chardet.detect("".join(lines))
-    if encodingInfo['confidence'] >= 0.9: 
+    if encodingInfo['confidence'] >= 0.9:
         predictedEncoding = encodingInfo['encoding']
-        if predictedEncoding == "utf8" or predictedEncoding == "utf-8": predictedEncoding = "utf-8-sig"
+        if predictedEncoding == "utf8" or predictedEncoding == "utf-8":
+            predictedEncoding = "utf-8-sig"
         lines = [l.decode(predictedEncoding) for l in lines]
     else:
         predictedEncoding = encodingInfo['encoding']
-        if predictedEncoding == "utf8" or predictedEncoding == "utf-8": predictedEncoding = "utf-8-sig"
-        lines = [l.decode(predictedEncoding,'replace') for l in lines]
-    delimFound= 0
-    delimForThisFile= None
+        if predictedEncoding == "utf8" or predictedEncoding == "utf-8":
+            predictedEncoding = "utf-8-sig"
+        lines = [l.decode(predictedEncoding, 'replace') for l in lines]
+    delimFound = 0
+    delimForThisFile = None
     for delim in possibleDelimiters:
-        if delim is not None and lines[0].find(delim)<0:
-            if debug: print "Delim is not <%s> (no occurrences in labels)"%delim
+        if delim is not None and lines[0].find(delim) < 0:
+            if debug:
+                print "Delim is not <%s> (no occurrences in labels)" % delim
             continue
-        tryRegex= makeSplitRegex(delim)
-        wordCount= len(tryRegex.findall(lines[0]))
-        if wordCount<3: 
-            if debug: print "Delim is not <%s> (no labels found)\n"%delim
+        tryRegex = makeSplitRegex(delim)
+        wordCount = len(tryRegex.findall(lines[0]))
+        if wordCount < 3:
+            if debug:
+                print "Delim is not <%s> (no labels found)\n" % delim
             continue
         for line in lines[1:]:
-            nwords= len(tryRegex.findall(line))
-            if nwords>0 and nwords != wordCount:
-                print "%d vs. %d: <%s>"%(nwords,wordCount,line)
-                if debug: print "Delim is not <%s>\n"%delim
+            nwords = len(tryRegex.findall(line))
+            if nwords > 0 and nwords != wordCount:
+                print "%d vs. %d: <%s>" % (nwords, wordCount, line)
+                if debug:
+                    print "Delim is not <%s>\n" % delim
                 break
         else:
-            delimFound= 1
-            delimForThisFile= delim
-            regexForThisFile= tryRegex
+            delimFound = 1
+            delimForThisFile = delim
+            regexForThisFile = tryRegex
             break
     if not delimFound:
         raise Exception("Cannot find the right delimiter for this CSV input!")
-        #sys.exit("Cannot find the right delimiter for this CSV input!")
-    if debug: print"delimForThisFile= <%s>"%delimForThisFile
-    keys= regexForThisFile.findall(lines[0])[:-1] # skip empty regex match at end
-    keys= [ x.strip() for x in keys ]
-    stringsAreQuoted= 1
+        # sys.exit("Cannot find the right delimiter for this CSV input!")
+    if debug:
+        print"delimForThisFile= <%s>" % delimForThisFile
+    keys = regexForThisFile.findall(lines[0])[:-1]  # skip empty regex match at end
+    keys = [x.strip() for x in keys]
+    stringsAreQuoted = 1
     for key in keys:
-        if len(key)>0 \
+        if len(key) > 0 \
                 and (not key.startswith('"') or not key.endswith('"')) \
                 and (not key.startswith("'") or not key.endswith("'")):
-            stringsAreQuoted= 0
-    if debug: print "stringsAreQuoted= %d"%stringsAreQuoted
+            stringsAreQuoted = 0
+    if debug:
+        print "stringsAreQuoted= %d" % stringsAreQuoted
     if stringsAreQuoted:
-        keys = [ x[1:-1] for x in keys ]
-    lines= lines[1:]
-    lineNum= 1
+        keys = [x[1:-1] for x in keys]
+    lines = lines[1:]
+    lineNum = 1
     for line in lines:
-        words= regexForThisFile.findall(line)[:-1] # skip empty regex match at end
-        words= [x.strip() for x in words]
-        if len(words)>0:
-            dict= CSVDict()
-            if len(words)!=len(keys):
-                eS = "Line length error: %d vs %d"%(len(words),len(keys))
+        words = regexForThisFile.findall(line)[:-1]  # skip empty regex match at end
+        words = [x.strip() for x in words]
+        if len(words) > 0:
+            dct = CSVDict()
+            if len(words) != len(keys):
+                eS = "Line length error: %d vs %d" % (len(words), len(keys))
                 for i in xrange(len(keys)):
-                    eS += "\n%d: <%s> <%s>"%(i,keys[i],words[i])
+                    eS += "\n%d: <%s> <%s>" % (i, keys[i], words[i])
                 logError(eS)
-                raiseRuntimeError("Line length error parsing CSV at line %d:"%(lineNum))
-                #sys.exit("Line length error parsing CSV at line %d"%(lineNum))
+                raiseRuntimeError("Line length error parsing CSV at line %d:" % (lineNum))
+                # sys.exit("Line length error parsing CSV at line %d"%(lineNum))
             for i in xrange(len(keys)):
-                if (stringsAreQuoted 
-                    and ((words[i].startswith('"') 
+                if (stringsAreQuoted
+                    and ((words[i].startswith('"')
                           and words[i].endswith('"'))
-                         or (words[i].startswith('"') 
+                         or (words[i].startswith('"')
                              and words[i].endswith('"')))):
-                        dict[keys[i]]= words[i][1:-1]
+                        dct[keys[i]] = words[i][1:-1]
                 else:
-                    if len(words[i])>0:
-                        if words[i][-1]=='%':
+                    if len(words[i]) > 0:
+                        if words[i][-1] == '%':
                             try:
-                                dict[keys[i]]= 0.01*float(words[i][:-1])
+                                dct[keys[i]] = 0.01*float(words[i][:-1])
                             except ValueError:
-                                dict[keys[i]]= words[i]
+                                dct[keys[i]] = words[i]
                         else:
                             try:
-                                dict[keys[i]]= int(words[i])
+                                dct[keys[i]] = int(words[i])
                             except ValueError:
                                 try:
-                                    dict[keys[i]]= float(words[i])
+                                    dct[keys[i]] = float(words[i])
                                 except ValueError:
-                                    dict[keys[i]]= words[i]
+                                    dct[keys[i]] = words[i]
                     else:
-                        dict[keys[i]]= words[i]
+                        dct[keys[i]] = words[i]
 
-            lineList.append(dict)
+            lineList.append(dct)
         lineNum += 1
     return (keys, lineList)
 
 
-def writeCSV( ofile, keyList, recDictList, delim=",", quoteStrings=False, sortColumn=None, emptyVal='NA' ):
+def writeCSV(ofile, keyList, recDictList, delim=",", quoteStrings=False, sortColumn=None,
+             emptyVal='NA'):
     """
     Each element of the input recDictList is a dictionary containing
     keys from keyList.
     """
-    with openFileOrHandle(ofile, 'w') as rawO:
-        o = codecs.getwriter(getPreferredOutputEncoding(rawO.encoding))(rawO,'replace')
+    with openByNameOrFile(ofile, 'w') as rawO:
+        o = codecs.getwriter(getPreferredOutputEncoding(rawO.encoding))(rawO, 'replace')
         if quoteStrings:
-            o.write('"%s"'%keyList[0])
+            o.write('"%s"' % keyList[0])
             for key in keyList[1:]:
-                o.write('%s"%s"'%(delim,key))
+                o.write('%s"%s"' % (delim, key))
         else:
-            o.write("%s"%keyList[0])
+            o.write("%s" % keyList[0])
             for key in keyList[1:]:
-                o.write("%s%s"%(delim,key))
+                o.write("%s%s" % (delim, key))
         o.write("\n")
         if sortColumn is not None:
             if sortColumn not in keyList:
-                print "Warning: sortColumn specified in  writeCSV is not a valid column, no sorting will be performed."
+                print ("Warning: sortColumn specified in  writeCSV is not a valid column,"
+                       " no sorting will be performed.")
             else:
-                recDictList.sort(lambda x,y:cmp(unicode(x[sortColumn]).lower(),unicode(y[sortColumn]).lower()))
-        
+                recDictList.sort(lambda x, y: cmp(unicode(x[sortColumn]).lower(),
+                                                  unicode(y[sortColumn]).lower()))
+
         for rD in recDictList:
             try:
-                val= rD[keyList[0]]
+                val = rD[keyList[0]]
             except KeyError:
-                val= emptyVal
-            if isinstance(val,(types.IntType, types.LongType)): o.write("%d"%val)
-            elif isinstance(val,float): o.write("%r"%val)
+                val = emptyVal
+            if isinstance(val, (types.IntType, types.LongType)):
+                o.write("%d" % val)
+            elif isinstance(val, float):
+                o.write("%r" % val)
             elif quoteStrings:
-                if val.startswith('"') and val.endswith('"'): o.write('%s'%val)
-                else: o.write('"%s"'%val)
+                if val.startswith('"') and val.endswith('"'):
+                    o.write('%s' % val)
+                else:
+                    o.write('"%s"' % val)
             else:
-                o.write("%s"%val)
+                o.write("%s" % val)
             for key in keyList[1:]:
                 try:
-                    val= rD[key]
+                    val = rD[key]
                 except KeyError:
-                    val= emptyVal
-                if isinstance(val,(types.IntType, types.LongType)): o.write("%s%d"%(delim,val))
-                elif isinstance(val,float): o.write("%s%r"%(delim,val))
+                    val = emptyVal
+                if isinstance(val, (types.IntType, types.LongType)):
+                    o.write("%s%d" % (delim, val))
+                elif isinstance(val, float):
+                    o.write("%s%r" % (delim, val))
                 elif quoteStrings:
-                    if val.startswith('"') and val.endswith('"'): o.write('%s%s'%(delim,val))
-                    else: o.write('%s"%s"'%(delim,val))
+                    if val.startswith('"') and val.endswith('"'):
+                        o.write('%s%s' % (delim, val))
+                    else:
+                        o.write('%s"%s"' % (delim, val))
                 else:
-                    o.write("%s%s"%(delim,val))
+                    o.write("%s%s" % (delim, val))
             o.write("\n")
     if debug:
-        print "Wrote %d recs, delim=<%s>, quoteStrings= %s"%\
-                  (len(recDictList),delim,quoteStrings)
+        print ("Wrote %d recs, delim=<%s>, quoteStrings= %s" %
+               (len(recDictList), delim, quoteStrings))
 
-    
+
 class castTypes:
     "An enumeration of casting types along with methods to attempt to perform them"
 
@@ -317,50 +354,50 @@ class castTypes:
         except:
             return False, val
         return True, ret
-    
+
     @staticmethod
     def CastString(val, **kwargs):
-        ### This is not an exhaustive list, so if this bombs on your system, we may need to add
-        codecs = ['iso-8859-1','cp1252','latin-1','utf-8']
+        # This is not an exhaustive list, so if this bombs on your system, we may need to add
+        codecs = ['iso-8859-1', 'cp1252', 'latin-1', 'utf-8']
         if 'predictedEncoding' in kwargs:
             codecs = [kwargs['predictedEncoding']]
-        ### This will now cast all strings as UNICODE
+        # This will now cast all strings as UNICODE
         if None == val:
             return False, val
         try:
-            if isinstance(val,types.UnicodeType):
+            if isinstance(val, types.UnicodeType):
                 ret = val
-            elif isinstance(val,types.StringType):
+            elif isinstance(val, types.StringType):
                 ret = None
                 for i in codecs:
                     try:
                         dVal = val.decode(i)
-                        
+
                         break
                     except Exception as e:
-                        print "%s"%str(e)
+                        print "%s" % str(e)
                         pass
                 try:
                     ret = dVal
                 except Exception as e:
-                    print "UNICODE FAILED: %s"%str(e)
-                    
+                    print "UNICODE FAILED: %s" % str(e)
+
                 if ret is None:
-                    ret = unicode(val,'utf-8',errors='replace')   
+                    ret = unicode(val, 'utf-8', errors='replace')
             else:
-                ## Default if it can figure it out.
-                ret = unicode(str(val),'utf-8',errors='replace')
+                # Default if it can figure it out.
+                ret = unicode(str(val), 'utf-8', errors='replace')
         except Exception as e:
             print str(e)
             return False, val
         return True, ret
-    
+
     @staticmethod
     def CastEmpty(val, **kwargs):
         if None == val:
             return True, val
         return False, val
-    
+
     @staticmethod
     def CastLong(val, **kwargs):
         try:
@@ -368,7 +405,7 @@ class castTypes:
         except:
             return False, val
         return True, ret
-    
+
     @staticmethod
     def CastNA(val, **kwargs):
         if "NA" == val:
@@ -382,7 +419,7 @@ class castTypes:
         except:
             return False, val
         return True, ret
-    
+
     @staticmethod
     def CastNonnegativeInt(val, **kwargs):
         try:
@@ -426,7 +463,7 @@ class castTypes:
         if val == "":
             return True, None
         return False, val
-    
+
     @staticmethod
     def CastBoolean(val, **kwargs):
         """This actually returns an int, 1 or 0, rather than python True/False"""
@@ -464,6 +501,7 @@ class castTypes:
     EMPTY_IS_NONE         = CastEmptyIsNone
     BOOLEAN               = CastBoolean
 
+
 class castFail(Exception):
     "Exception class called if any member of a column failed its cast"
     def __init__(self, failedVal, key, line, fileName=None):
@@ -471,13 +509,15 @@ class castFail(Exception):
         self.key = key
         self.line = line
         self.fileName = fileName
+
     def __str__(self):
         if self.fileName is None:
-            return "*** Failed to cast value: %s for key %s on line %d ***"\
-                %(repr(self.failedVal), self.key, self.line)
+            return ("*** Failed to cast value: %s for key %s on line %d ***"
+                    % (repr(self.failedVal), self.key, self.line))
         else:
-            return "*** Failed to cast value: %s for key %s on line %d of file %s ***"\
-                %(repr(self.failedVal), self.key, self.line, self.fileName)
+            return ("*** Failed to cast value: %s for key %s on line %d of file %s ***"
+                    % (repr(self.failedVal), self.key, self.line, self.fileName))
+
 
 def castValue(val, castList, key):
     if isinstance(castList, types.FunctionType):
@@ -487,13 +527,15 @@ def castValue(val, castList, key):
         if status:
             return out
     else:
-        print 'castList: %s key: %s val: %s val type: %s'%(castList,key,val,type(val).__name__)
+        print ('castList: %s key: %s val: %s val type: %s'
+               % (castList, key, val, type(val).__name__))
         raise castFail(val, key, -1)
+
 
 def castEntry(rec, key, castList):
     if isinstance(castList, types.FunctionType):
         castList = [castList]
-    
+
     if key in rec:
         val = rec[key]
     else:
@@ -507,25 +549,26 @@ def castEntry(rec, key, castList):
     else:
         raise castFail(val, key, -1)
 
+
 def castColumn(recs, key, castList, fileName=None):
-    """ 
+    """
     Cast all entries in a column to a specific (set of) type(s).
-    
-    Tries each cast type in castList in order on each member of a column 
+
+    Tries each cast type in castList in order on each member of a column
     until it either succeeds in its casting or (if the list is exhausted)
     throws a castFail exception.
     """
     if isinstance(castList, types.FunctionType):
         castList = [castList]
 
-    for line,rec in enumerate(recs,1):
+    for line, rec in enumerate(recs, 1):
         if key in rec:
             val = rec[key]
         else:
             val = None
 
         hints = {}
-        if hasattr(rec,'predictedEncoding') and rec.predictedEncoding is not None:
+        if hasattr(rec, 'predictedEncoding') and rec.predictedEncoding is not None:
             hints['predictedEncoding'] = rec.predictedEncoding
         for cast in castList:
             status, out = cast(val, **hints)
@@ -534,37 +577,3 @@ def castColumn(recs, key, castList, fileName=None):
                 break
         else:
             raise castFail(val, key, line, fileName)
-
-def main():
-    "This is a simple test routine which takes csv files as arguments"
-    global verbose, debug
-    
-    for a in sys.argv[1:]:
-        if a=='-v': verbose= True
-        elif a=='-d': debug= True
-        else:
-            print "##### Checking %s"%a
-            with open(a,"rU") as f:
-                keys,recs= parseCSV(f)
-            
-            with open('test_csv_tools.csv','w') as f:
-                writeCSV(f,keys,recs,quoteStrings=True)
-            with open('test_csv_tools.csv','rU') as f:
-                keys2,recs2= parseCSV(f)
-            assert(keys2==keys)
-            for i,tpl in enumerate(zip(recs2,recs)):
-                r2,r = tpl
-                if r != r2:
-                    print "##### record %d differs: "%i
-                    for k in keys:
-                        if r[k] != r2[k]:
-                            print "%s:%s --> %s:%s"%(k,r[k],k,r2[k])
-            assert(recs2==recs)
-            
-############
-# Main hook
-############
-
-if __name__=="__main__":
-    main()
-
