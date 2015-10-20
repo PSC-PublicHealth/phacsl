@@ -1,0 +1,2 @@
+recursive-include src *.py
+include src/tests/test_csv_input.csv
