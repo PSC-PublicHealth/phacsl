@@ -21,8 +21,8 @@ import cStringIO
 import cPickle
 import unittest
 
-from PHA_utils.notes.statval import StatVal, AccumVal, TimeStampAccumVal, HistoVal, AccumMultiVal
-from PHA_utils.notes.statval import TagAwareDict
+from phacsl.utils.notes.statval import StatVal, AccumVal, TimeStampAccumVal, HistoVal, AccumMultiVal
+from phacsl.utils.notes.statval import TagAwareDict
 
 
 def describeSelf():

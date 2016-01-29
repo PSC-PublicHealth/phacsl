@@ -21,8 +21,8 @@ import unittest
 import types
 import StringIO
 
-import PHA_utils.formats.kvp_tools as kvp_tools
-from PHA_utils.formats.kvp_tools import ParserException
+import phacsl.utils.formats.kvp_tools as kvp_tools
+from phacsl.utils.formats.kvp_tools import ParserException
 
 
 def main():

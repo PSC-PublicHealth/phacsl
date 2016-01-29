@@ -19,7 +19,7 @@ import sys
 import StringIO
 import unittest
 
-from PHA_utils.notes.noteholder import NoteHolderGroup
+from phacsl.utils.notes.noteholder import NoteHolderGroup
 
 
 def describeSelf():
