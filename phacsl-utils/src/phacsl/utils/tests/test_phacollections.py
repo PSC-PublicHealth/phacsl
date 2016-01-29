@@ -15,7 +15,7 @@
 #                                                                                 #
 ###################################################################################
 import unittest
-from phacsl.utils.collections import enum, namedtuple, SingletonMetaClass
+from phacsl.utils.collections.phacollections import enum, namedtuple, SingletonMetaClass
 
 import types
 
