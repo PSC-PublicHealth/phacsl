@@ -10,6 +10,7 @@ setup(name='phacsl-utils',
       #url='https://www.python.org/sigs/distutils-sig/',
       packages=['phacsl.utils', 
                 'phacsl.utils.misc',
+                'phacsl.utils.collections',
                 'phacsl.utils.formats',
                 'phacsl.utils.notes',
                 'phacsl.utils.tests'

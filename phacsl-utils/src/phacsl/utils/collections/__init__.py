@@ -15,4 +15,5 @@
 #                                                                                 #
 ###################################################################################
 
-__all__ = ["formats", "notes", "misc", "collections"]
+__all__ = ["enum", "namedtuple", "SingletonMetaClass"]
+
