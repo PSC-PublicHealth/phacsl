@@ -26,7 +26,7 @@ cTract = namedtuple('cTract', ['sId', 'cTractPolygons', 'extent', 'centroid'])
 cTractPoly = namedtuple('cTractPoly', ['sId', 'extent', 'polygon', 'innerRings', 'pHandle', 'irHandles', 'centroid'])
 
 class CensusTractShapesBase:
-    def __init__(self, rootDir, includeStates = None):
+    def __init__(self, rootDir='shapefile_cache', includeStates = None):
         self.shapeFileDir = os.path.join(rootDir, 'census_tract_shapes/%s/'%self.year)
         if not os.path.exists(self.shapeFileDir):
             os.makedirs(self.shapeFileDir)
@@ -164,7 +164,7 @@ class CensusTractShapesBase:
         return ret
 
 class CensusTractShapes1990(CensusTractShapesBase):
-    def __init__(self, rootDir, includeStates=None):
+    def __init__(self, rootDir='shapefile_cache', includeStates=None):
         self.year = 1990
         self.netShapeHost = 'www2.census.gov'
         self.netShapePath = '/geo/tiger/PREVGENZ/tr/tr90shp/'
@@ -183,7 +183,7 @@ class CensusTractShapes1990(CensusTractShapesBase):
         return attrs['ST'] + attrs['CO'] + attrs['TRACTBASE'] + ftn
 
 class CensusTractShapes2000(CensusTractShapesBase):
-    def __init__(self, rootDir, includeStates=None):
+    def __init__(self, rootDir='shapefile_cache', includeStates=None):
         self.year = 2000
         self.netShapeHost = 'www2.census.gov'
         self.netShapePath = '/geo/tiger/PREVGENZ/tr/tr00shp/'
@@ -194,7 +194,7 @@ class CensusTractShapes2000(CensusTractShapesBase):
         return attrs['STATE'] + attrs['COUNTY'] + attrs['TRACT']
 
 class CensusTractShapes2010(CensusTractShapesBase):
-    def __init__(self, rootDir, includeStates=None):
+    def __init__(self, rootDir='shapefile_cache', includeStates=None):
         self.year = 2010
         self.netShapeHost = 'www2.census.gov'
         self.netShapePath = '/geo/tiger/GENZ2010/'
@@ -207,7 +207,7 @@ class CensusTractShapes2010(CensusTractShapesBase):
         return attrs['STATE'] + attrs['COUNTY'] + attrs['TRACT']
 
 class CensusTractShapes2013(CensusTractShapesBase):
-    def __init__(self, rootDir, includeStates=None):
+    def __init__(self, rootDir='shapefile_cache', includeStates=None):
         self.year = 2013
         self.netShapeHost = 'www2.census.gov'
         self.netShapePath = '/geo/tiger/GENZ2013/'
@@ -218,7 +218,7 @@ class CensusTractShapes2013(CensusTractShapesBase):
         return attrs['GEOID']
 
 class CensusTractShapes2014(CensusTractShapesBase):
-    def __init__(self, rootDir, includeStates=None):
+    def __init__(self, rootDir='shapefile_cache', includeStates=None):
         self.year = 2014
         self.netShapeHost = 'www2.census.gov'
         self.netShapePath = '/geo/tiger/GENZ2014/shp/'
@@ -229,7 +229,7 @@ class CensusTractShapes2014(CensusTractShapesBase):
         return attrs['GEOID']
 
 class CensusTractShapes2015(CensusTractShapesBase):
-    def __init__(self, rootDir, includeStates=None):
+    def __init__(self, rootDir='shapefile_cache', includeStates=None):
         self.year = 2015
         self.netShapeHost = 'www2.census.gov'
         self.netShapePath = '/geo/tiger/GENZ2015/shp/'
