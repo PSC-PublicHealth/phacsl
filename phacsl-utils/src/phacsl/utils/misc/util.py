@@ -24,6 +24,7 @@ import sys
 import types
 import locale
 import codecs
+import gzip
 
 
 def isiterable(c):
@@ -162,3 +163,60 @@ class openByNameOrFile():
     def __exit__(self, typ, value, traceback):
         if self.odfHandle is not None:
             self.odfHandle.close()
+
+
+class ReadFile:
+    """
+    This is a class that will allow open file context managers for regular
+    or compressed files.
+    
+    This might open and close the file multiple times as it tries to 
+    determine the file type.
+
+    This should be joined with openByNameOrFile() but for now, I'll let
+    it stand alone so I can get other work done.
+    """
+    def checkGzip(self):
+        f = None
+        try:
+            f = gzip.open(self.fname, self.mode)
+            f.read(1)
+            f.close()
+            return True
+        except:
+            if f is not None:
+                f.close()
+            return False
+
+    def findType(self):
+        if self.checkGzip():
+            return 'gzip'
+        return 'file'
+
+    def open(self):
+        if self.ftype == 'gzip':
+            self.fh = gzip.open(self.fname, self.mode)
+            return self.fh
+
+        if self.ftype == 'file':
+            self.fh = open(self.fname, self.mode)
+            return self.fh
+
+    def close(self):
+        if self.ftype == 'gzip':
+            self.fh.close()
+        elif self.ftype == 'file':
+            self.fh.close()
+
+    def __init__(self, fname, mode = "rb"):
+        self.fname = fname
+        self.mode = mode
+
+        self.ftype = self.findType()
+
+    def __enter__(self):
+        return self.open()
+
+    def __exit__(self, type, value, traceback):
+        self.close()
+
