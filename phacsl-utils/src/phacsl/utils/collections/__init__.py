@@ -17,3 +17,4 @@
 
 __all__ = ["enum", "namedtuple", "SingletonMetaClass"]
 
+from phacollections import *
