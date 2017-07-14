@@ -15,6 +15,12 @@
 #                                                                                 #
 ###################################################################################
 
-__all__ = ["enum", "namedtuple", "SingletonMetaClass"]
+__all__ = [
+        # from phacollections.py:
+        "enum", "namedtuple", "SingletonMetaClass",
+        # from interdict.py:
+        "InterDict"
+        ]
 
 from phacollections import *
+from interdict import InterDict
