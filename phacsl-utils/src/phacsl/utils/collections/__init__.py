@@ -19,8 +19,8 @@ __all__ = [
         # from phacollections.py:
         "enum", "namedtuple", "SingletonMetaClass",
         # from interdict.py:
-        "InterDict"
+        "InterDict", "InterDictFactory"
         ]
 
 from phacollections import *
-from interdict import InterDict
+from interdict import InterDict, InterDictFactory
