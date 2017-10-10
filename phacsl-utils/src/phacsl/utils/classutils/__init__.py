@@ -15,4 +15,9 @@
 #                                                                                 #
 ###################################################################################
 
-__all__ = ["formats", "notes", "misc", "collections", "classutils"]
+__all__ = [
+        # from metaclasses.py:
+        'ClassIsInstanceMeta'         
+        ]
+
+from metaclasses import ClassIsInstanceMeta
