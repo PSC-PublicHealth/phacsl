@@ -81,8 +81,8 @@ class InterDict(dict):
             vpf = lambda x: pickle.dumps(x, protocol=2)
             vupf = lambda x: pickle.loads(bytes(x))
         else:
-            kpf = lambda x: x
-            kupf = lambda x: x
+            vpf = lambda x: x
+            vupf = lambda x: x
         return kpf,kupf,vpf,vupf 
 
     def __init__(self, dbdir, overwrite_existing=False, convert_int=False,
@@ -209,7 +209,7 @@ class InterDict(dict):
         try:
             with self.env.begin(write=True, buffers=True) as txn:
                 for key, val in items:
-                    txn.put(self.int(key), self.pack_val(val), db=self.db)
+                    txn.put(self.pack_key(key), self.pack_val(val), db=self.db)
         except Exception as e:
             raise
 
