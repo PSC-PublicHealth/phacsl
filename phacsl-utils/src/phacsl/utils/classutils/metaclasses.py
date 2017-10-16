@@ -20,30 +20,3 @@ class ClassIsInstanceMeta(type):
         cls.isinstance = isinstance
         super(ClassIsInstanceMeta, cls).__init__(name, bases, dct)
 
-    @classmethod
-    def _test(cls):
-        class TestClass_1(object):
-            __metaclass__ = ClassIsInstanceMeta
-        class TestClass_2(TestClass_1):
-            pass
-        class TestClass_3(TestClass_1):
-            pass
-        class TestClass_4(TestClass_2):
-            pass
-
-        t1 = TestClass_1()
-        t2 = TestClass_2()
-        t3 = TestClass_3()
-        t4 = TestClass_4()
-
-        print(t1.isinstance(TestClass_1))
-        print(t1.isinstance(TestClass_2))
-        print(t2.isinstance(TestClass_2))
-        print(t3.isinstance(TestClass_2))
-        print(t4.isinstance(TestClass_1))
-        print(t4.isinstance(TestClass_2))
-        print(t4.isinstance(TestClass_3))
-        try:
-            print(object.isinstance(TestClass_1))
-        except AttributeError:
-            print("NOTE: if the class (or one of its bases) doesn't use the ClassIsInstanceMeta metaclass, an exception is raised")
