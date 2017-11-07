@@ -17,7 +17,7 @@
 
 __all__ = [
         # from phacollections.py:
-        "enum", "namedtuple", "SingletonMetaClass",
+        "enum", "namedtuple", "SingletonMetaClass", "DefaultDict"
         # from interdict.py:
         "InterDict", "InterDictFactory"
         ]

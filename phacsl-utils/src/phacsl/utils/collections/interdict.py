@@ -60,7 +60,18 @@ class InterDictFactory(object):
         return d
 
 class InterDict(dict):
+    """
+    Creates an lmdb backed dict.
     
+    keys can either be integer or string/bytes based.  
+    If integer based they must be passed as a (numpy) int64 or the convert_int flag must be set.
+
+    vals are string/bytes based.
+    
+    To be more useful in python, InterDicts can take python objects and serialize them with either
+    pickle or msgpack for either or both of keys and vals.
+
+    """
     def get_packing_functions(self):
         if self.convert_int:
             kpf = lambda x: self.int(x)
@@ -71,18 +82,22 @@ class InterDict(dict):
         elif self.key_serialization == 'pickle':
             kpf = lambda x: pickle.dumps(x, protocol=2)
             kupf = lambda x: pickle.loads(bytes(x))
-        else:
+        elif self.key_serialization is None:
             kpf = lambda x: x
             kupf = lambda x: x
+        else:
+            raise RuntimeError("unknown key serialization")
         if self.val_serialization == 'msgpack':
             vpf = lambda x: msgpack.packb(x)
             vupf = lambda x: msgpack.unpackb(x)
         elif self.val_serialization == 'pickle':
             vpf = lambda x: pickle.dumps(x, protocol=2)
             vupf = lambda x: pickle.loads(bytes(x))
-        else:
+        elif self.val_serialization is None:
             vpf = lambda x: x
             vupf = lambda x: x
+        else:
+            raise RuntimeError("unknown val serialization")
         return kpf,kupf,vpf,vupf 
 
     def __init__(self, dbdir, overwrite_existing=False, convert_int=False,
