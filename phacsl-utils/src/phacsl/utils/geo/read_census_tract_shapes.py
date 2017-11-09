@@ -36,7 +36,7 @@ class CensusTractShapesBase:
         return os.path.join(self.shapeFileDir, "censusTracts_%02d.ogrinfo.gz"%fipsCode)
 
     def downloadShapeFile(self, fipsCode):
-        print "downloading %s"%fipsCode
+        print(("downloading %s"%fipsCode))
         sFile = self.netShapeFile.replace('XX', "%02d"%fipsCode)
         path = self.netShapePath + sFile
         conn = httplib.HTTPConnection(self.netShapeHost)
@@ -177,8 +177,8 @@ class CensusTractShapes1990(CensusTractShapesBase):
             ftn = "%04.2f"%tn
         except:
             # there are two tracts that have '(null)' attributes and fail all of this
-            print "Can't convert tract name %s"%attrs['TRACT_NAME']
-            print attrs
+            print(("Can't convert tract name %s"%attrs['TRACT_NAME']))
+            print(attrs)
             ftn = attrs['TRACT_NAME']
         return attrs['ST'] + attrs['CO'] + attrs['TRACTBASE'] + ftn
 

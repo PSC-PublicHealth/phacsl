@@ -118,7 +118,7 @@ class KVPParser:
 
         for rec in iterator:
             if self.debug:
-                print 'parsing <%s>' % rec
+                print(('parsing <%s>' % rec))
             tokenizer = KVPParser._tokGen(rec, encoding)
             key = None
             val = None
@@ -127,7 +127,7 @@ class KVPParser:
             try:
                 for t, v in tokenizer:
                     if self.debug:
-                        print "got %s,<%s> in state %d" % (t, v, state)
+                        print(("got %s,<%s> in state %d" % (t, v, state)))
                     if state == KVPParser.START:
                         if t in ["comment", "trailingblanks"]:
                             state = KVPParser.COMMENT
@@ -213,7 +213,7 @@ class KVPParser:
         """
         if isinstance(iteratorOrFilename, types.StringTypes):
             if self.verbose:
-                print "parsing %s" % iteratorOrFilename
+                print(("parsing %s" % iteratorOrFilename))
             if encoding is None:
                 # preparse for encoding
                 with open(iteratorOrFilename, "rU") as f:
@@ -228,7 +228,7 @@ class KVPParser:
                 result = self._innerParseKVP(f, encoding)
         else:
             if self.verbose:
-                print "parsing kvp input"
+                print("parsing kvp input")
             if encoding is None:
                 encoding = sys.getdefaultencoding()
             result = self._innerParseKVP(iter(iteratorOrFilename),
@@ -268,7 +268,7 @@ class KVPParser:
         """
         if isinstance(ofileOrFilename, types.StringType):
             if self.verbose:
-                print "writing to %s" % ofileOrFilename
+                print(("writing to %s" % ofileOrFilename))
             with open(ofileOrFilename, "w") as rawFile:
                 if encoding is None:
                     if hasattr(rawFile, 'encoding'):
@@ -279,7 +279,7 @@ class KVPParser:
                 self._innerWriteKVP(f, dct)
         else:
             if self.verbose:
-                print "writing to %s" % ofileOrFilename.name
+                print(("writing to %s" % ofileOrFilename.name))
             if encoding is None:
                 if hasattr(ofileOrFilename, 'encoding'):
                     encoding = ofileOrFilename.encoding

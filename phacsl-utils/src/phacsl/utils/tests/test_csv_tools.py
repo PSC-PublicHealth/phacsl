@@ -36,7 +36,7 @@ def main():
 
     if argList:
         for a in argList:
-            print "##### Checking %s" % a
+            print(("##### Checking %s" % a))
             with open(a, "rU") as f:
                 keys, recs = csv_tools.parseCSV(f)
             with open('test_csv_tools.csv', 'w') as f:
@@ -47,13 +47,13 @@ def main():
             for i, tpl in enumerate(zip(recs2, recs)):
                 r2, r = tpl
                 if r != r2:
-                    print "##### record %d differs: " % i
+                    print(("##### record %d differs: " % i))
                     for k in keys:
                         if r[k] != r2[k]:
-                            print "%s:%s --> %s:%s" % (k, r[k], k, r2[k])
+                            print(("%s:%s --> %s:%s" % (k, r[k], k, r2[k])))
             assert(recs2 == recs)
     else:
-        print "No input files to check"
+        print("No input files to check")
 
 ############
 # Main hook

@@ -27,7 +27,7 @@ class TestIsInstanceMeta(unittest.TestCase):
         self.assertTrue(self.t4.isinstance(TestClass_2))
         self.assertFalse(self.t4.isinstance(TestClass_3))
         with self.assertRaises(AttributeError):
-            print(object.isinstance(TestClass_1))
+            print((object.isinstance(TestClass_1)))
 
 
 

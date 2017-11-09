@@ -185,7 +185,7 @@ class IT2D:
 
 def testFindNode(tree, pTuple):
     xMin, xMax, yMin, yMax = pTuple
-    print tree.findNode(xMin, xMax, yMin, yMax, pTuple).data
+    print((tree.findNode(xMin, xMax, yMin, yMax, pTuple).data))
     
     
 def main():
@@ -203,29 +203,29 @@ def main():
     t.insert(IT2DNode(1,9,1,9, (1,9,1,9)))
 
     
-    print "2,4: %s"%t.findIntersectPoint(2,4)
-    print "4,7: %s"%t.findIntersectPoint(4,7)
-    print "1,3: %s"%t.findIntersectPoint(1,3)
+    print(("2,4: %s"%t.findIntersectPoint(2,4)))
+    print(("4,7: %s"%t.findIntersectPoint(4,7)))
+    print(("1,3: %s"%t.findIntersectPoint(1,3)))
 
-    print "(2,4), (5,8): %s"%t.findIntersectSegmentPair(2,4,5,8)
+    print(("(2,4), (5,8): %s"%t.findIntersectSegmentPair(2,4,5,8)))
 
     for pt in t.findIntersectSegmentPair(2,4,5,8):
         testFindNode(t, pt)
 
-    print "all: %s"%t.all()
+    print(("all: %s"%t.all()))
     
-    print "removing %s"%(nnode.data,)
+    print(("removing %s"%(nnode.data,)))
     t = t.remove(nnode)
     
-    print "2,4: %s"%t.findIntersectPoint(2,4)
-    print "4,7: %s"%t.findIntersectPoint(4,7)
-    print "1,3: %s"%t.findIntersectPoint(1,3)
+    print(("2,4: %s"%t.findIntersectPoint(2,4)))
+    print(("4,7: %s"%t.findIntersectPoint(4,7)))
+    print(("1,3: %s"%t.findIntersectPoint(1,3)))
 
-    print "(2,4), (5,8): %s"%t.findIntersectSegmentPair(2,4,5,8)
+    print(("(2,4), (5,8): %s"%t.findIntersectSegmentPair(2,4,5,8)))
     for pt in t.findIntersectSegmentPair(2,4,5,8):
         testFindNode(t, pt)
     
-    print "all: %s"%t.all()
+    print(("all: %s"%t.all()))
     
 if __name__ == "__main__":
     main()

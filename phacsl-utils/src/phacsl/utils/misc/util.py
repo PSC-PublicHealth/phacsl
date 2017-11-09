@@ -68,28 +68,28 @@ class logContext:
 
 
 def raiseRuntimeError(msg):
-    print "****** Begin Fatal Error ******"
+    print("****** Begin Fatal Error ******")
     for c in logContext.context:
-        print c
-    print msg
-    print "****** End Fatal Error ********"
+        print(c)
+    print(msg)
+    print("****** End Fatal Error ********")
     raise RuntimeError(msg)
 
 
 def logError(msg):
-    print "****** Begin Non-Fatal Error ******"
+    print("****** Begin Non-Fatal Error ******")
     for c in logContext.context:
-        print c
-    print msg
-    print "****** End Non-Fatal Error ********"
+        print(c)
+    print(msg)
+    print("****** End Non-Fatal Error ********")
 
 
 def logWarning(msg):
-    print "****** Begin Warning ******"
+    print("****** Begin Warning ******")
     for c in logContext.context:
-        print c
-    print msg
-    print "****** End Warning ********"
+        print(c)
+    print(msg)
+    print("****** End Warning ********")
 
 
 def _modify_for_nested_pickle(cls, name_prefix, module):

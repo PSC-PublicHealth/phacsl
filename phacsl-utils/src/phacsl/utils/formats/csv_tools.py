@@ -75,7 +75,7 @@ def makeSplitRegex(delim):
         # why is \t delimiter treated separately????
         rstr = r'''[ \n\r\f\v]*([^"'%s]*|"[^"]*"|'[^']*')[ \n\r\f\v]*(?:%s|$)''' % (delim, delim)
         if debug:
-            print "regex for <%s>: <%s>" % (delim, rstr)
+            print(("regex for <%s>: <%s>" % (delim, rstr)))
         return re.compile(rstr)
     else:
         # See bug #381 in redmine for more information
@@ -90,7 +90,7 @@ def makeSplitRegex(delim):
         rstr = r'''\s*(%s)\s*(?:%s|$)''' % (group1, delim)
         # debug logging
         if debug:
-            print "regex for <%s>: <%s>" % (delim, rstr)
+            print(("regex for <%s>: <%s>" % (delim, rstr)))
         return re.compile(rstr)
 
 
@@ -103,7 +103,7 @@ def parseCSVHeader(ifile):
     """
     if isinstance(ifile, types.TupleType):
         if verbose:
-            print "parsing header of preprocessed tuple instead of CSV"
+            print("parsing header of preprocessed tuple instead of CSV")
         return ifile[0]
 
     if isinstance(ifile, types.StringTypes):
@@ -112,7 +112,7 @@ def parseCSVHeader(ifile):
         name = ifile.name
 
     if verbose:
-        print "parsing header of %s" % name
+        print(("parsing header of %s" % name))
     possibleDelimiters = [";", ",", "\t", None]  # empty string means whitespace-delimited
     with openByNameOrFile(ifile) as f:
         lines = f.readlines(20)  # don't bother reading the entire file, just enough to get hints
@@ -121,20 +121,20 @@ def parseCSVHeader(ifile):
     for delim in possibleDelimiters:
         if delim is not None and lines[0].find(delim) < 0:
             if debug:
-                print "Delim is not <%s> (no occurrences in labels)" % delim
+                print(("Delim is not <%s> (no occurrences in labels)" % delim))
             continue
         tryRegex = makeSplitRegex(delim)
         wordCount = len(tryRegex.findall(lines[0]))
         if wordCount < 3:
             if debug:
-                print "Delim is not <%s> (no labels found)\n" % delim
+                print(("Delim is not <%s> (no labels found)\n" % delim))
             continue
         for line in lines[1:]:
             nwords = len(tryRegex.findall(line))
             if nwords > 0 and nwords != wordCount:
                 if debug:
-                    print "%d vs. %d: <%s>" % (nwords, wordCount, line)
-                    print "Delim is not <%s>\n" % delim
+                    print(("%d vs. %d: <%s>" % (nwords, wordCount, line)))
+                    print(("Delim is not <%s>\n" % delim))
                 break
         else:
             delimFound = 1
@@ -145,7 +145,7 @@ def parseCSVHeader(ifile):
         raise Exception("Cannot find the right delimiter for this CSV input!")
         # sys.exit("Cannot find the right delimiter for this CSV input!")
     if debug:
-        print"delimForThisFile= <%s>" % delimForThisFile
+        print(("delimForThisFile= <%s>" % delimForThisFile))
     keys = regexForThisFile.findall(lines[0])[:-1]  # skip empty regex match at end
     keys = [x.strip() for x in keys]
     stringsAreQuoted = 1
@@ -155,7 +155,7 @@ def parseCSVHeader(ifile):
                 and (not key.startswith("'") or not key.endswith("'")):
             stringsAreQuoted = 0
     if debug:
-        print "stringsAreQuoted= %d" % stringsAreQuoted
+        print(("stringsAreQuoted= %d" % stringsAreQuoted))
     if stringsAreQuoted:
         keys = [x[1:-1] for x in keys]
     return keys
@@ -170,7 +170,7 @@ def parseCSV(ifile):
     """
     if isinstance(ifile, types.TupleType):
         if verbose:
-            print "parsing preprocessed tuple instead of CSV"
+            print("parsing preprocessed tuple instead of CSV")
         return ifile
 
     if isinstance(ifile, types.StringTypes):
@@ -179,7 +179,7 @@ def parseCSV(ifile):
         name = ifile.name
 
     if verbose:
-        print "parsing %s" % name
+        print(("parsing %s" % name))
     lineList = []
     possibleDelimiters = [";", ",", "\t", None]  # empty string means whitespace-delimited
     with openByNameOrFile(ifile) as f:
@@ -200,20 +200,20 @@ def parseCSV(ifile):
     for delim in possibleDelimiters:
         if delim is not None and lines[0].find(delim) < 0:
             if debug:
-                print "Delim is not <%s> (no occurrences in labels)" % delim
+                print(("Delim is not <%s> (no occurrences in labels)" % delim))
             continue
         tryRegex = makeSplitRegex(delim)
         wordCount = len(tryRegex.findall(lines[0]))
         if wordCount < 3:
             if debug:
-                print "Delim is not <%s> (no labels found)\n" % delim
+                print(("Delim is not <%s> (no labels found)\n" % delim))
             continue
         for line in lines[1:]:
             nwords = len(tryRegex.findall(line))
             if nwords > 0 and nwords != wordCount:
-                print "%d vs. %d: <%s>" % (nwords, wordCount, line)
+                print(("%d vs. %d: <%s>" % (nwords, wordCount, line)))
                 if debug:
-                    print "Delim is not <%s>\n" % delim
+                    print(("Delim is not <%s>\n" % delim))
                 break
         else:
             delimFound = 1
@@ -224,7 +224,7 @@ def parseCSV(ifile):
         raise Exception("Cannot find the right delimiter for this CSV input!")
         # sys.exit("Cannot find the right delimiter for this CSV input!")
     if debug:
-        print"delimForThisFile= <%s>" % delimForThisFile
+        print(("delimForThisFile= <%s>" % delimForThisFile))
     keys = regexForThisFile.findall(lines[0])[:-1]  # skip empty regex match at end
     keys = [x.strip() for x in keys]
     stringsAreQuoted = 1
@@ -234,7 +234,7 @@ def parseCSV(ifile):
                 and (not key.startswith("'") or not key.endswith("'")):
             stringsAreQuoted = 0
     if debug:
-        print "stringsAreQuoted= %d" % stringsAreQuoted
+        print(("stringsAreQuoted= %d" % stringsAreQuoted))
     if stringsAreQuoted:
         keys = [x[1:-1] for x in keys]
     lines = lines[1:]
@@ -340,8 +340,8 @@ def writeCSV(ofile, keyList, recDictList, delim=",", quoteStrings=False, sortCol
                     o.write("%s%s" % (delim, val))
             o.write("\n")
     if debug:
-        print ("Wrote %d recs, delim=<%s>, quoteStrings= %s" %
-               (len(recDictList), delim, quoteStrings))
+        print(("Wrote %d recs, delim=<%s>, quoteStrings= %s" %
+               (len(recDictList), delim, quoteStrings)))
 
 
 class castTypes:
@@ -375,12 +375,12 @@ class castTypes:
 
                         break
                     except Exception as e:
-                        print "%s" % str(e)
+                        print(("%s" % str(e)))
                         pass
                 try:
                     ret = dVal
                 except Exception as e:
-                    print "UNICODE FAILED: %s" % str(e)
+                    print(("UNICODE FAILED: %s" % str(e)))
 
                 if ret is None:
                     ret = unicode(val, 'utf-8', errors='replace')
@@ -388,7 +388,7 @@ class castTypes:
                 # Default if it can figure it out.
                 ret = unicode(str(val), 'utf-8', errors='replace')
         except Exception as e:
-            print str(e)
+            print((str(e)))
             return False, val
         return True, ret
 
@@ -527,8 +527,8 @@ def castValue(val, castList, key):
         if status:
             return out
     else:
-        print ('castList: %s key: %s val: %s val type: %s'
-               % (castList, key, val, type(val).__name__))
+        print(('castList: %s key: %s val: %s val type: %s'
+               % (castList, key, val, type(val).__name__)))
         raise castFail(val, key, -1)
 
 
