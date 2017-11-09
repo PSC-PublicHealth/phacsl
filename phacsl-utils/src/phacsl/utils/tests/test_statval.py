@@ -193,14 +193,14 @@ def main(myargv=None):
                 cPickle.dump(s, fakeF)
                 newS = cPickle.loads(fakeF.getvalue())
                 print(('pickling and unpickling worked: %s' % newS))
-            except Exception, e:
+            except Exception as e:
                 print(('pickling or unpickling failed: %s' % str(e)))
             try:
                 newS = HistoVal.fromJSON(s.toJSON())
                 print((newS.d))
                 print(('toJSON and fromJSON worked: %s' % newS))
                 print(('compare two equal vals: %s' % (s == newS)))
-            except Exception, e:
+            except Exception as e:
                 print(('toJSON and fromJSON failed: %s' % str(e)))
         else:
             print("Wrong number of arguments!")

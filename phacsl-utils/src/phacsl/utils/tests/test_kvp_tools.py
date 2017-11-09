@@ -44,7 +44,7 @@ def main():
             try:
                 d = parser.parse([rec], encoding='utf8')
                 print(d)
-            except ParserException, e:
+            except ParserException as e:
                 print(e)
 
     for thing in parseThese:
@@ -99,7 +99,7 @@ class TestKVPTools(unittest.TestCase):
                     print(("error: got %s expected %s" % (d, expectedResult)))
                 self.assertTrue(d == expectedResult)
                 totalDict.update(d)
-            except ParserException, e:
+            except ParserException as e:
                 self.assertTrue(isinstance(expectedResult, types.StringTypes))
                 self.assertTrue(str(e) == expectedResult)
         outSIO = StringIO.StringIO()

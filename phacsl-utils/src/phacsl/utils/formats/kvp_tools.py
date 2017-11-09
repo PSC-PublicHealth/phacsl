@@ -200,7 +200,7 @@ class KVPParser:
                         # we represent true with a string, though, since that's how other such
                         # keys appear.
                         result[key] = True
-            except TokenizerException, e:
+            except TokenizerException as e:
                 raise ParserException("failed to lex <%s>; %s" % (rec, e))
         return result
 

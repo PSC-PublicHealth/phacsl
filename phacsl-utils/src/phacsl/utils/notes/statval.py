@@ -750,7 +750,7 @@ class TagAwareDict(MutableMapping):
     def __getitem__(self, k):
         try:
             return self.map.__getitem__(k)
-        except KeyError, e:
+        except KeyError as e:
             for tag, mthd in self.tagMethodPairs:
                 if k.endswith(tag):
                     v = self.map[k[:-len(tag)]]
@@ -770,7 +770,7 @@ class TagAwareDict(MutableMapping):
         """
         try:
             self.map.__delitem__(k)
-        except KeyError, e:
+        except KeyError as e:
             liveTag = self.tagMethodPairs[0][0]
             if k.endswith(liveTag):
                 v = self.map[k[:-len(liveTag)]]
