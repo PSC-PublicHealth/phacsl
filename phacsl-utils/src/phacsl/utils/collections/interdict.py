@@ -115,7 +115,7 @@ class InterDict(dict):
 
         self.pack_key,self.unpack_key,self.pack_val,self.unpack_val = self.get_packing_functions()
 
-        self.env = lmdb.open(dbdir, max_dbs=1, map_size=int(1e9))
+        self.env = lmdb.open(dbdir, max_dbs=1, map_size=int(1e12))
         self.db = self.env.open_db(b'db', integerkey=self.integer_keys)
 
         if args is not None:
@@ -202,10 +202,37 @@ class InterDict(dict):
             if self.integer_keys:
                 return [np.frombuffer(key, dtype='int64')[0] for key,_ in txn.cursor(db=self.db)]
             else:
-                return [self.unpack_key(key) for key,_ in txn.cursor(db=self.db)] 
+                return [self.unpack_key(key) for key,_ in txn.cursor(db=self.db)]
+            
+    def keyRange(self, kMin, kMax):
+        kMin = self.pack_key(kMin)
+        kMax = self.pack_key(kMax)
+
+        ret = []
+        with self.env.begin(write=False, buffers=True) as txn:
+            if self.integer_keys:
+                cursor =  txn.cursor(db=self.db)
+                cursor.set_range(kMin)
+                for key,_ in cursor:
+                    key = np.frombuffer(key, dtype='int64')[0]
+                    if key > kMax:
+                        return ret
+                    ret.append(key)
+                return ret
+            else:
+                cursor =  txn.cursor(db=self.db)
+                cursor.set_range(kMin)
+                for key,_ in cursor:
+                    key = self.unpack_key(key)
+                    if key > kMax:
+                        return ret
+                    ret.append(key)
+                return ret
+
+        
 
     def values(self):
-        with self.env.begin(write=False, buffers=True) as txn:
+        with self.env.begin(wriet=False, buffers=True) as txn:
             return [self.unpack_val(val) for _,val in txn.cursor(db=self.db)]
 
     def iteritems(self):
@@ -256,6 +283,12 @@ class InterDict(dict):
 
     def __repr__(self):
         return '{0}({1})'.format(type(self).__name__, str(self.items()))
+
+    def flush(self):
+        self.env.sync()
+
+    def close(self):
+        self.env.close()
 
 
 import unittest, tempfile
