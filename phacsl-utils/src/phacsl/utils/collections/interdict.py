@@ -255,12 +255,20 @@ class InterDict(dict):
         except Exception as e:
             raise
 
+    def mset_single_value(self, keys, val):
+        """ Set multiple keys to the same value, within a single transaction """
+        try:
+            with self.env.begin(write=True, buffers=True) as txn:
+                for key in keys:
+                    txn.put(self.pack_key(key), self.pack_val(val), db=self.db)
+        except Exception as e:
+            raise
+
     def mget(self, keys):
         try:
             with self.env.begin(write=False, buffers=True) as txn:
                 for key in keys:
                     yield key, self.unpack_val(txn.get(self.pack_key(key), db=self.db))
-
         except Exception as e:
             raise
 
