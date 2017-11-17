@@ -43,12 +43,12 @@ def main():
         for rec in [a for a, b in TestKVPTools.samples]:  # @UnusedVariable
             try:
                 d = parser.parse([rec], encoding='utf8')
-                print d
-            except ParserException, e:
-                print e
+                print(d)
+            except ParserException as e:
+                print(e)
 
     for thing in parseThese:
-        print "##### Checking %s" % thing
+        print(("##### Checking %s" % thing))
         d = parser.parse(thing)
         if parser.verbose:
             parser.writeKVP(sys.stdout, d)
@@ -96,10 +96,10 @@ class TestKVPTools(unittest.TestCase):
                 d = parser.parse([rec], encoding='utf8')
                 self.assertTrue(isinstance(expectedResult, types.DictType))
                 if d != expectedResult:
-                    print "error: got %s expected %s" % (d, expectedResult)
+                    print(("error: got %s expected %s" % (d, expectedResult)))
                 self.assertTrue(d == expectedResult)
                 totalDict.update(d)
-            except ParserException, e:
+            except ParserException as e:
                 self.assertTrue(isinstance(expectedResult, types.StringTypes))
                 self.assertTrue(str(e) == expectedResult)
         outSIO = StringIO.StringIO()

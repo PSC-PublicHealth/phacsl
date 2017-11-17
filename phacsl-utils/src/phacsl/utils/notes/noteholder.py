@@ -237,7 +237,7 @@ class NoteHolderGroup(object):
             for k, v in n.d.items():
                 if printRegex.match(k):
                     tmpD[k] = v
-            print tmpD
+            print(tmpD)
 
     def getnotes(self):
         """

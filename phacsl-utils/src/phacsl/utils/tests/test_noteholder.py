@@ -23,15 +23,14 @@ from phacsl.utils.notes.noteholder import NoteHolderGroup
 
 
 def describeSelf():
-    print \
-        """
+    print("""
         Testing options:
 
           testnote
 
              does simple tests of NoteHolder
 
-        """
+        """)
 
 
 def main(myargv=None):
@@ -46,35 +45,35 @@ def main(myargv=None):
         nhg1 = NoteHolderGroup()
         nhg2 = NoteHolderGroup()
         if len(myargv) == 2:
-            print "---- creating groups of NoteHolders ----"
+            print("---- creating groups of NoteHolders ----")
             nh1_1 = nhg1.createNoteHolder()
             nh1_1.addNote({"int": 0, "float": 1.0, "word": "hello "})
-            print 'nh1_1: '+str(nh1_1)
+            print(('nh1_1: '+str(nh1_1)))
             nh1_2 = nhg1.createNoteHolder()
             nh1_2.addNote({"float": 1234.5, "word": "foobar"})
-            print 'nh1_2: ' + str(nh1_2)
-            print "---- testing addNote ----"
+            print(('nh1_2: ' + str(nh1_2)))
+            print("---- testing addNote ----")
             for i in xrange(10):
                 nh1_1.addNote({"int": i, "float": (1.0+0.1*i), "word": "world "})
-            print 'nh1_1: ' + str(nh1_1)
+            print(('nh1_1: ' + str(nh1_1)))
             nh2_1 = nhg2.createNoteHolder()
             nh2_1.addNote({"float": 13243.5, "word": "Iamnh2_1"})
             nh1_1.addNote({"float": 6789.0, "word": "foobar"})
-            print "---- generating CSV; fake file contents follow ----"
+            print("---- generating CSV; fake file contents follow ----")
             stringFile = StringIO.StringIO()
             stringFile.encoding = 'ascii'  # covers a weakness of StringIO
             nhg1.writeNotesAsCSV(stringFile)
-            print stringFile.getvalue()
-            print "--- printing everything ----"
+            print((stringFile.getvalue()))
+            print("--- printing everything ----")
             nhg1.printAll()
             nhg2.printAll()
-            print "--- printing just 'int' ----"
+            print("--- printing just 'int' ----")
             nhg1.printAll('int')
-            print "--- clearing all but 'float' from nhg1 ----"
+            print("--- clearing all but 'float' from nhg1 ----")
             nhg1.clearAll('float')
             nhg1.printAll()
             nhg2.printAll()
-            print "--- testing enable/disable ----"
+            print("--- testing enable/disable ----")
             nhg1.enableAll()
             nhg2.disableAll()
             for n in [nh1_1, nh1_2, nh2_1]:
@@ -86,7 +85,7 @@ def main(myargv=None):
             nhg1.printAll()
             nhg2.printAll()
         else:
-            print "Wrong number of arguments!"
+            print("Wrong number of arguments!")
             describeSelf()
 
     else:

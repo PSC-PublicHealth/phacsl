@@ -561,7 +561,7 @@ class AccumMultiVal:
         if other.names != self.names:
             for i in range(0, len(self.names)):
                 if self.names[i] != other.names[i]:
-                    print "This is the different Key " + other.names[i]
+                    print(("This is the different Key " + other.names[i]))
             raise RuntimeError("__iadd__ on AccumMultiVal must use same nameset on both instances")
         self.v += other.v
 
@@ -750,7 +750,7 @@ class TagAwareDict(MutableMapping):
     def __getitem__(self, k):
         try:
             return self.map.__getitem__(k)
-        except KeyError, e:
+        except KeyError as e:
             for tag, mthd in self.tagMethodPairs:
                 if k.endswith(tag):
                     v = self.map[k[:-len(tag)]]
@@ -770,7 +770,7 @@ class TagAwareDict(MutableMapping):
         """
         try:
             self.map.__delitem__(k)
-        except KeyError, e:
+        except KeyError as e:
             liveTag = self.tagMethodPairs[0][0]
             if k.endswith(liveTag):
                 v = self.map[k[:-len(liveTag)]]

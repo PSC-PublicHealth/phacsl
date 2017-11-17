@@ -133,7 +133,7 @@ class OgrShapeFile:
                     #print sll
                     x,y = sll.split()
                     if y.endswith(')'):
-                        print "discarding inner ring!"
+                        print("discarding inner ring!")
                         #print s
                         #print sllpairs
                         innerRing = True
