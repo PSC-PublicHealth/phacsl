@@ -5,6 +5,7 @@ try:
     import cPickle as pickle
 except:
     import pickle
+import collections
 
 #import blosc
 #from pyhashxx import hashxx
@@ -232,7 +233,7 @@ class InterDict(dict):
         
 
     def values(self):
-        with self.env.begin(wriet=False, buffers=True) as txn:
+        with self.env.begin(write=False, buffers=True) as txn:
             return [self.unpack_val(val) for _,val in txn.cursor(db=self.db)]
 
     def iteritems(self):
@@ -298,6 +299,149 @@ class InterDict(dict):
     def close(self):
         self.env.close()
 
+
+class IntValueInterDict(InterDict):
+
+    def debit(self, key, amount, min_remaining=np.iinfo('int').min):
+        try:
+            with self.env.begin(write=True, buffers=True) as txn:
+                val = self.unpack_val(txn.get(self.pack_key(key), db=self.db))
+                if val < min_remaining:
+                    remaining_debit_amount = amount
+                else:
+                    val = val - amount
+                    if val < min_remaining:
+                        remaining_debit_amount = min_remaining - val 
+                        val = min_remaining
+                    else:
+                        remaining_debit_amount = 0
+                txn.put(self.pack_key(key), self.pack_val(val), db=self.db)
+                return val, remaining_debit_amount
+        except Exception as e:
+            raise
+
+    def credit(self, key, amount, max_remaining=np.iinfo('int').max):
+        try:
+            with self.env.begin(write=True, buffers=True) as txn:
+                val = self.unpack_val(txn.get(self.pack_key(key), db=self.db))
+                if val > max_remaining:
+                    remaining_credit_amount = amount
+                else:
+                    val = val + amount
+                    if val > max_remaining:
+                        remaining_credit_amount = val - max_remaining 
+                        val = max_remaining
+                    else:
+                        remaining_credit_amount = 0
+                txn.put(self.pack_key(key), self.pack_val(val), db=self.db)
+                return val, remaining_credit_amount
+        except Exception as e:
+            raise
+
+    def mdebit(self, keys, amount, min_remaining=np.iinfo('int').min):
+        assert(isinstance(keys, collections.Iterable))
+        if isinstance(amount, collections.Iterable):
+            assert(len(keys)==len(amount))
+            amount = np.asarray(amount, dtype=int)
+        else:
+            amount = np.zeros(len(keys), dtype=int) + amount
+        if isinstance(min_remaining, collections.Iterable):
+            assert(len(keys)==len(min_remaining))
+            min_remaining = np.asarray(min_remaining, dtype=int)
+        else:
+            min_remaining = np.zeros(len(keys), dtype=int) + min_remaining
+        try:
+            with self.env.begin(write=True, buffers=True) as txn:
+                cur_vals = []
+                for key in keys:
+                    cur_vals.append(self.unpack_val(
+                        txn.get(self.pack_key(key), db=self.db)))
+                vals = np.asarray(cur_vals, dtype=int)
+                remaining_debit_amount = np.zeros(len(keys), dtype=int)
+                for key,i in zip(keys, range(len(vals))):
+                    if vals[i] < min_remaining[i]:
+                        remaining_debit_amount[i] = amount[i]
+                    else:
+                        vals[i] = vals[i] - amount[i]
+                        if vals[i] < min_remaining[i]:
+                            remaining_debit_amount[i] = min_remaining[i] - vals[i]
+                            vals[i] = min_remaining[i]
+                        else:
+                            remaining_debit_amount[i] = 0
+                    val = int(vals[i])
+                    txn.put(self.pack_key(key), self.pack_val(val), db=self.db)
+                return vals, remaining_debit_amount
+        except Exception as e:
+            raise
+
+    def mcredit(self, keys, amount, max_remaining=np.iinfo('int').max):
+        assert(isinstance(keys, collections.Iterable))
+        if isinstance(amount, collections.Iterable):
+            assert(len(keys)==len(amount))
+            amount = np.asarray(amount, dtype=int)
+        else:
+            amount = np.zeros(len(keys), dtype=int) + amount
+        if isinstance(max_remaining, collections.Iterable):
+            assert(len(keys)==len(max_remaining))
+            max_remaining = np.asarray(max_remaining, dtype=int)
+        else:
+            max_remaining = np.zeros(len(keys), dtype=int) + max_remaining
+        try:
+            with self.env.begin(write=True, buffers=True) as txn:
+                cur_vals = []
+                for key in keys:
+                    cur_vals.append(self.unpack_val(
+                        txn.get(self.pack_key(key), db=self.db)))
+                vals = np.asarray(cur_vals, dtype=int)
+                remaining_credit_amount = np.zeros(len(keys), dtype=int)
+                for key,i in zip(keys, range(len(vals))):
+                    if vals[i] > max_remaining[i]:
+                        remaining_credit_amount[i] = amount[i]
+                    else:
+                        vals[i] = vals[i] + amount[i]
+                        if vals[i] > max_remaining[i]:
+                            remaining_credit_amount[i] = vals[i] - max_remaining[i]
+                            vals[i] = max_remaining[i]
+                        else:
+                            remaining_credit_amount[i] = 0
+                    val = int(vals[i])
+                    txn.put(self.pack_key(key), self.pack_val(val), db=self.db)
+                return vals, remaining_credit_amount
+        except Exception as e:
+            raise
+
+    def mcredit_from_pool(self, keys, pool, max_remaining):
+        assert(isinstance(keys, collections.Iterable))
+        assert(not isinstance(pool, collections.Iterable))
+        if isinstance(max_remaining, collections.Iterable):
+            assert(len(keys)==len(max_remaining))
+            max_remaining = np.asarray(max_remaining, dtype=int)
+        else:
+            max_remaining = np.zeros(len(keys), dtype=int) + max_remaining
+        try:
+            with self.env.begin(write=True, buffers=True) as txn:
+                cur_vals = []
+                for key in keys:
+                    cur_vals.append(self.unpack_val(
+                        txn.get(self.pack_key(key), db=self.db)))
+                vals = np.asarray(cur_vals, dtype=int)
+                for key,i in zip(keys, range(len(vals))):
+                    if vals[i] < max_remaining[i]:
+                        if pool >= max_remaining[i] - vals[i]:
+                            pool -= max_remaining[i] - vals[i]
+                            vals[i] = max_remaining[i]
+                        else:
+                            vals[i] += pool
+                            pool = 0
+                    val = int(vals[i])
+                    txn.put(self.pack_key(key), self.pack_val(val), db=self.db)
+                    if pool < 0:
+                        raise Exception()
+                    elif pool == 0:
+                        break
+                return vals, pool
+        except Exception as e:
+            raise
 
 import unittest, tempfile
 
