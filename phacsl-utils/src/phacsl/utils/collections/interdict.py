@@ -116,7 +116,13 @@ class InterDict(dict):
 
         self.pack_key,self.unpack_key,self.pack_val,self.unpack_val = self.get_packing_functions()
 
-        self.env = lmdb.open(dbdir, max_dbs=1, map_size=int(1e10))
+        self.env = lmdb.open(dbdir, max_dbs=1,
+                map_size=int(1e10),
+                max_readers=126,
+                map_async=True,
+                writemap=True,
+                max_spare_txns=126
+                )
         self.db = self.env.open_db(b'db', integerkey=self.integer_keys)
 
         if args is not None:
