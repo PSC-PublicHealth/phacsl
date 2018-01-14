@@ -21,7 +21,9 @@ _packages = ['phacsl',
         'phacsl.utils.geo',
         'phacsl.utils.notes',
         'phacsl.utils.tests',
-        'phacsl.utils.classutils']
+        'phacsl.utils.classutils',
+        'phacsl.stats', 
+        ]
 
 _ext_modules = []
 
