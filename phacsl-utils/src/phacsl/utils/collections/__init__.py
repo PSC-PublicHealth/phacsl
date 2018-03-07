@@ -22,5 +22,5 @@ __all__ = [
         "InterDict", "InterDictFactory"
         ]
 
-from phacollections import *
-from interdict import InterDict, InterDictFactory
+from .phacollections import *
+from .interdict import InterDict, InterDictFactory
