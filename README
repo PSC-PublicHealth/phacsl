@@ -1,3 +1,9 @@
 The Public Health Applications Common Software Library (phacsl)
 
 This repo contains reusable python software packages for use with PHA software development projects.
+
+There are several compiled extensions included in this repository.
+These are build by default, but can be excluded with optional arguments to `setup.py`.
+
+Note that it is possible, during developemnt, to set your `PYTHONPATH` to the `src` directory.
+In order to use the compiled extensions in this manner, first run `python setup.py build_ext --inplace`.

@@ -1,5 +1,12 @@
 build/
+dist/
+
+src/phacsl/utils/collections/cbits.cpp
+src/phacsl_utils.egg-info/
+
+*.so
 *.pyc
+
 *~
 .*.swp
 .*.swo

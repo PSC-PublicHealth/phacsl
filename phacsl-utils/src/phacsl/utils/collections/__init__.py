@@ -24,3 +24,10 @@ __all__ = [
 
 from .phacollections import *
 from .interdict import InterDict, InterDictFactory
+
+try:
+    from .cbits import Bitset
+    __all__.append("Bitset")
+except Exception as e:
+    from sys import stderr
+    stderr.write("WARNING: Unable to import cbits.Bitset cython extension.\n")
