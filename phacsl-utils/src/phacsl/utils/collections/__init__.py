@@ -19,11 +19,11 @@ __all__ = [
         # from phacollections.py:
         "enum", "namedtuple", "SingletonMetaClass", "DefaultDict"
         # from interdict.py:
-        "InterDict", "InterDictFactory"
+        "InterDict", "InterDictFactory", "IntValueInterDict"
         ]
 
 from .phacollections import *
-from .interdict import InterDict, InterDictFactory
+from .interdict import InterDict, InterDictFactory, IntValueInterDict
 
 try:
     from .cbits import Bitset
