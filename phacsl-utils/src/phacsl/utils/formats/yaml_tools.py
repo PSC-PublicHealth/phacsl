@@ -66,30 +66,38 @@ def parse_all_simplified(dirName):
     allKeys, rawRecs = parse_all(dirName)
     return allKeys, [_simplify(r) for r in rawRecs]
 
+firstKeys = ['name', 'abbrev', 'category']
 
-def save_all(dirName, recList):
-    # Re-copy everything, but with ordered keys
-    theseComeFirst = ['name', 'abbrev', 'category']
-    theseComeFirstSet = set(theseComeFirst)
+def save_all(dirName, recList, theseComeFirst=None):
     newRecs = []
-    for rec in recList:
-        newRec = OrderedDict()
-        for k in theseComeFirst:
-            newRec[k] = rec[k]
-        for k in rec:
-            if k not in theseComeFirstSet:
-                newRec[k] = rec[k]
-        newRecs.append(newRec)
-
-    # Write output
     noAbbrevCtr = 0
-    for rec in newRecs:
+    for rec in recList:
         if 'abbrev' in rec and len(rec['abbrev']) > 0:
             ofname = rec['abbrev'] + '.yaml'
         else:
             ofname = 'none%d.yaml' % noAbbrevCtr
             noAbbrevCtr += 1
-        with open(os.path.join(dirName, ofname), 'w') as f:
-            yaml.safe_dump(rec, f,
-                           default_flow_style=False, indent=4,
-                           encoding='utf-8', width=130, explicit_start=True)
+
+        fullName = os.path.join(dirName, ofname)
+        save_one(fullName, rec, theseComeFirst)
+
+def save_one(fileName, rec, theseComeFirst=None):
+    # Re-copy everything, but with ordered keys
+
+    if theseComeFirst is None:
+        global firstKeys
+        theseComeFirst = firstKeys
+    theseComeFirstSet = set(theseComeFirst)
+
+    newRec = OrderedDict()
+    for k in theseComeFirst:
+        newRec[k] = rec[k]
+    for k in rec:
+        if k not in theseComeFirstSet:
+            newRec[k] = rec[k]
+    with open(fileName, 'w') as f:
+        yaml.safe_dump(rec, f,
+                       default_flow_style=False, indent=4,
+                       encoding='utf-8', width=130, explicit_start=True)
+
+    
