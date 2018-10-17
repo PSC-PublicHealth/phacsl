@@ -118,7 +118,7 @@ class InterDict(dict):
 
         self.env = lmdb.open(dbdir, max_dbs=1,
                 map_size=int(1e10),
-                max_readers=126,
+                max_readers=253,
                 map_async=True,
                 writemap=True,
                 max_spare_txns=126
