@@ -2,3 +2,4 @@ numpy
 lmdb
 msgpack-python
 chardet
+retrying

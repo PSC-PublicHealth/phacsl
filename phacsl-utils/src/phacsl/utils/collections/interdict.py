@@ -1,6 +1,7 @@
 import lmdb, msgpack
 import time, datetime, shutil, os
 import numpy as np
+from retrying import retry
 try:
     import cPickle as pickle
 except:
@@ -9,6 +10,9 @@ import collections
 
 #import blosc
 #from pyhashxx import hashxx
+
+def retryable(exception):
+    return isinstance(exception, lmdb.BadRslotError)
 
 _RaiseKeyError = object()
 
@@ -140,6 +144,7 @@ class InterDict(dict):
         except Exception as e:
             raise
 
+    @retry(wait_fixed=100, stop_max_attempt_number=10, retry_on_exception=retryable)
     def __getitem__(self, key):
         try:
             with self.env.begin(write=False, buffers=True) as txn:
@@ -154,6 +159,7 @@ class InterDict(dict):
         except Exception as e:
             raise
 
+    @retry(wait_fixed=100, stop_max_attempt_number=10, retry_on_exception=retryable)
     def __contains__(self, key):
         with self.env.begin(write=False, buffers=True) as txn:
             return txn.get(self.pack_key(key), db=self.db) is not None
